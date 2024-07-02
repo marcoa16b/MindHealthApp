@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "515488947038",
+    "project_id": "mindhealth-e99c8",
+    "storage_bucket": "mindhealth-e99c8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:515488947038:android:8cba602ecd45aef23b8dcf",
+        "android_client_info": {
+          "package_name": "com.nandev.mind_health"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDty8MqFo8xIpQmmVbYJfIwY2wAkM7Fixo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
