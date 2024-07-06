@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mind_health/src/Views/register_view.dart';
+import 'package:mind_health/src/Utils/firebase.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,14 +17,25 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
-  void _login() {
+  final DatabaseService _dbService = DatabaseService();
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       // Implement login logic
       final String username = _usernameController.text;
       final String password = _passwordController.text;
       print('Username: $username');
       print('Password: $password');
+      MyAppUser? user = await _dbService.signInWithEmail(username, password);
+      if (user != null) {
+        print('Inicio de sesión exitoso: ${user.email}');
+        // Navegar a la siguiente pantalla o mostrar un mensaje de éxito
+      } else {
+        print('Error en el inicio de sesión: Usuario no encontrado');
+        // Mostrar un mensaje de error al usuario
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error en el inicio de sesión: Usuario no encontrado')),
+        );
+      }
       // TODO: agregar la lógica de autenticación con Firebase.
     }
   }
