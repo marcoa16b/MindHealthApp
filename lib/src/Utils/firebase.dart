@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /**
  * Aquí podemos agregar todos los metodos para la base de datos y autenticación
@@ -8,20 +9,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Este es el ejemplo de como usar la base de datos, es lo que hice para agregar
 /// los datos de los embeddings.
-class MyAppUser {
-  final String uid;
-  final String email;
-  final String password; // En un entorno real, se almacenaría de manera segura, por ejemplo, utilizando hash y sal
-
-  MyAppUser({
-    required this.uid,
-    required this.email,
-    required this.password,
-  });
-}
-
 class DatabaseService {
-  final CollectionReference _usersCollection = FirebaseFirestore.instance.collection('users');
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   Future<void> addEmbedding() async {
     CollectionReference collection =
         FirebaseFirestore.instance.collection("test");
@@ -38,26 +28,39 @@ class DatabaseService {
     /// Guardar el embedding en la coleccion "test"
     await collection.add(doc);
   }
-  ///  Método para verificar y autenticar un usuario por email y contraseña
-  Future<MyAppUser?> signInWithEmail(String email, String password) async {
+
+  /// Método para registrar un nuevo usuario usando email y contraseña
+  Future<User?> registerWithEmail(String email, String password) async {
     try {
-      QuerySnapshot querySnapshot = await _usersCollection.where('email', isEqualTo: email).limit(1).get();
-      if (querySnapshot.docs.isNotEmpty) {
-        var userData = querySnapshot.docs.first.data();
-        if (userData is Map<String, dynamic> && userData['password'] == password) {
-          return MyAppUser(
-            uid: querySnapshot.docs.first.id,
-            email: userData['email'],
-            password: userData['password'],
-          );
-        }
-      }
-      return null; // Devuelve null si el usuario no existe o la contraseña es incorrecta
+      UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+      return result.user;
     } catch (e) {
-      print('Error al iniciar sesión: $e');
+      print('Error: $e');
+      return null;
+    }
+  }
+  ///  Método para verificar y autenticar un usuario por email y contraseña
+  Future<User?> signInWithEmail(String email, String password) async {
+    try {
+      UserCredential result = await _auth.signInWithEmailAndPassword(email: email, password: password);
+      return result.user;
+    } catch (e) {
+      print('Error: $e');
       return null;
     }
   }
 
+  /// Método para cerrar la sesión del usuario
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
 
+  /// Método para verificar si hay un usuario autenticado
+  User? getCurrentUser() {
+    return _auth.currentUser;
+  }
 }

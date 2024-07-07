@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mind_health/src/Views/login_view.dart';
+import 'package:mind_health/src/Utils/firebase.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -15,16 +16,54 @@ class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final DatabaseService _dbService = DatabaseService();
+  bool _isLoading = false;
 
-  void _register() {
+  Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       // Implement login logic
       final String username = _usernameController.text;
       final String password = _passwordController.text;
       print('Username: $username');
       print('Password: $password');
+      try {
+        final user = await _dbService.registerWithEmail(username, password);
+        if (user != null) {
+          // Si el registro es exitoso, redirigir al usuario a la página de inicio de sesión
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginPage()));
+          print('Registration successful');
+        } else {
+          _showErrorDialog('Failed to register. Please check your details and try again.');
+        }
+      } catch (e) {
+        _showErrorDialog('An error occurred. Please try again later.');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       // TODO: agregar la lógica para registrar un usuario con Firebase.
     }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Error', style: GoogleFonts.poppins()),
+          content: Text(message, style: GoogleFonts.poppins()),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK', style: GoogleFonts.poppins()),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

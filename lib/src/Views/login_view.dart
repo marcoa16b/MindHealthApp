@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final DatabaseService _dbService = DatabaseService();
+  bool _isLoading = false;
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       // Implement login logic
@@ -25,21 +26,44 @@ class _LoginPageState extends State<LoginPage> {
       final String password = _passwordController.text;
       print('Username: $username');
       print('Password: $password');
-      MyAppUser? user = await _dbService.signInWithEmail(username, password);
-      if (user != null) {
-        print('Inicio de sesión exitoso: ${user.email}');
-        // Navegar a la siguiente pantalla o mostrar un mensaje de éxito
-      } else {
-        print('Error en el inicio de sesión: Usuario no encontrado');
-        // Mostrar un mensaje de error al usuario
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error en el inicio de sesión: Usuario no encontrado')),
-        );
+      try {
+        final user = await _dbService.signInWithEmail(username, password);
+        if (user != null) {
+          // Si el inicio de sesión es exitoso, redirigir al usuario a la página principal
+          // Navigator.pushReplacementNamed(context, '/home');
+          print('Login successful');
+        } else {
+          _showErrorDialog('Failed to sign in. Please check your credentials and try again.');
+        }
+      } catch (e) {
+        _showErrorDialog('An error occurred. Please try again later.');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
       // TODO: agregar la lógica de autenticación con Firebase.
     }
   }
-
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Error', style: GoogleFonts.poppins()),
+          content: Text(message, style: GoogleFonts.poppins()),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK', style: GoogleFonts.poppins()),
+            ),
+          ],
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
